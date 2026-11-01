@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const auth = require('../middleware/auth');
+const User = require('../models/User');
+const { uploadImage, uploadToCloudinary } = require('../utils/upload');
 
 // get all posts, newest first
 router.get('/', async (req, res) => {
@@ -13,9 +16,27 @@ router.get('/', async (req, res) => {
 });
 
 // create a post
-router.post('/', async (req, res) => {
+
+router.post('/', auth, uploadImage, async (req, res) => {
   try {
-    const post = await Post.create(req.body);
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(401).json({ message: 'User not found' });
+
+    const { location, caption } = req.body;
+    let image = req.body.image;
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      image = result.secure_url;
+    }
+
+    const post = await Post.create({
+      authorName: user.name,
+      author: user._id,
+      location,
+      caption,
+      image
+    });
     res.status(201).json(post);
   } catch (err) {
     res.status(400).json({ message: err.message });
