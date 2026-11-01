@@ -13,6 +13,9 @@ app.use(express.json());
 const postRoutes = require('./routes/posts');
 app.use('/api/posts', postRoutes);
 
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err.message));
