@@ -48,4 +48,19 @@ router.patch('/:id/like', async (req, res) => {
   }
 });
 
+// unlike a post
+router.patch('/:id/unlike', async (req, res) => {
+  try {
+    const post = await Post.findOneAndUpdate(
+      { _id: req.params.id, likes: { $gt: 0 } },
+      { $inc: { likes: -1 } },
+      { new: true }
+    );
+    if (!post) return res.status(404).json({ message: 'Post not found or has no likes' });
+    res.json(post);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 module.exports = router;
